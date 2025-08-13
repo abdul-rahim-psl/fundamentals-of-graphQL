@@ -35,7 +35,7 @@ const resolvers = {
     addMessage: (_: unknown, { message }: { message: string }) => {
       // first parameter is called the parent(root)
       // it holds the return value of the previous resolver in the chain
-      // in this case, it is not used, so we use an underscore to ignore it
+      // in this case, it is not used, so we use an underscore to ignore it (top level mutation)
       messages.push(message);
       return messages;
     },
