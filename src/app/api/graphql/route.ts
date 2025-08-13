@@ -28,12 +28,14 @@ const typeDefs = /* GraphQL */ `
  */
 const resolvers = {
   Query: {
-    // Returns all messages from our in-memory store
     getMessages: () => messages,
   },
+
   Mutation: {
-    // Adds a new message to the store and returns the updated list
     addMessage: (_: unknown, { message }: { message: string }) => {
+      // first parameter is called the parent(root)
+      // it holds the return value of the previous resolver in the chain
+      // in this case, it is not used, so we use an underscore to ignore it
       messages.push(message);
       return messages;
     },
