@@ -10,11 +10,8 @@ import { useState, useEffect } from "react";
  * 2. Adding new messages (using the addMessage mutation)
  */
 export default function Home() {
-  // State for storing messages retrieved from the GraphQL API
   const [messages, setMessages] = useState<string[]>([]);
-  // State for storing the new message being typed
   const [newMsg, setNewMsg] = useState("");
-  // State for loading indicators
   const [isLoading, setIsLoading] = useState(true);
 
   /**
@@ -29,11 +26,14 @@ export default function Home() {
    */
   const fetchMessages = async () => {
     setIsLoading(true);
+
+    const query = "query { getMessages }";
+
     try {
       const response = await fetch("/api/graphql", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "{ getMessages }" }),
+        body: JSON.stringify({ query }),
       });
 
       const data = await response.json();
