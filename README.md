@@ -28,8 +28,10 @@ When a GraphQL operation is executed:
 First, install dependencies:
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
+
+If you can solve the legacy peer deps problem. I will thank you.
 
 Then, run the development server:
 
