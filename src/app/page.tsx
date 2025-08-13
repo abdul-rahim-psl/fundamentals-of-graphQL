@@ -1,103 +1,152 @@
-import Image from "next/image";
+"use client";
 
+import { useState, useEffect } from "react";
+
+/**
+ * Home component - Main page of our GraphQL messaging application
+ *
+ * Provides a UI for:
+ * 1. Viewing all messages (using the getMessages query)
+ * 2. Adding new messages (using the addMessage mutation)
+ */
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // State for storing messages retrieved from the GraphQL API
+  const [messages, setMessages] = useState<string[]>([]);
+  // State for storing the new message being typed
+  const [newMsg, setNewMsg] = useState("");
+  // State for loading indicators
+  const [isLoading, setIsLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  /**
+   * Fetch messages from the GraphQL API on component mount
+   */
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  /**
+   * Fetches messages using the getMessages GraphQL query
+   */
+  const fetchMessages = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: "{ getMessages }" }),
+      });
+
+      const data = await response.json();
+      if (data.data?.getMessages) {
+        setMessages(data.data.getMessages);
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Handles adding a new message using the addMessage GraphQL mutation
+   */
+  const addMessage = async () => {
+    if (!newMsg.trim()) return;
+
+    try {
+      const query = `
+        mutation {
+          addMessage(message: ${JSON.stringify(newMsg)})
+        }
+      `;
+
+      const response = await fetch("/api/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await response.json();
+      if (data.data?.addMessage) {
+        setMessages(data.data.addMessage);
+        setNewMsg("");
+      }
+    } catch (error) {
+      console.error("Error adding message:", error);
+    }
+  };
+
+  /**
+   * Handle form submission for adding messages
+   */
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addMessage();
+  };
+
+  return (
+    <div className="font-sans flex flex-col items-center min-h-screen p-8 pb-20 max-w-4xl mx-auto">
+      <header className="mb-10 text-center">
+        <h1 className="text-3xl font-bold mb-3">GraphQL Message Board</h1>
+        <p className="text-gray-500">A simple demo of GraphQL with Next.js</p>
+      </header>
+
+      <main className="flex flex-col w-full max-w-lg gap-8">
+        {/* Message Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <h2 className="text-xl font-semibold">Add a New Message</h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newMsg}
+              onChange={(e) => setNewMsg(e.target.value)}
+              placeholder="Type your message here..."
+              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              Send
+            </button>
+          </div>
+        </form>
+
+        {/* Message List */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Messages</h2>
+          {isLoading ? (
+            <p>Loading messages...</p>
+          ) : messages.length > 0 ? (
+            <ul className="border rounded-lg overflow-hidden divide-y">
+              {messages.map((msg, i) => (
+                <li key={i} className="p-4 hover:bg-gray-50">
+                  {msg}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">
+              No messages yet. Be the first to add one!
+            </p>
+          )}
+        </div>
+
+        {/* GraphQL Info */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-medium mb-2">About this App</h3>
+          <p className="text-sm text-gray-600 mb-3">
+            This is a simple demonstration of GraphQL with Next.js App Router.
+            It uses:
+          </p>
+          <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
+            <li>GraphQL Yoga for the API</li>
+            <li>Next.js App Router for routing</li>
+            <li>In-memory data store (for demo purposes)</li>
+          </ul>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
