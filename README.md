@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GraphQL Basics with Next.js
+
+A simple message board application that demonstrates GraphQL implementation in a Next.js project using GraphQL Yoga.
+
+## Project Overview
+
+This application serves as a learning resource for understanding GraphQL basics with the following features:
+
+- **Frontend**: React components with Next.js App Router
+- **Backend**: GraphQL API built with GraphQL Yoga
+- **Operations**:
+  - Query: `getMessages` (fetch message list)
+  - Mutation: `addMessage` (add new message)
+
+## Architecture Flow
+
+When a GraphQL operation is executed:
+
+1. **Frontend Component** sends a GraphQL query/mutation to `/api/graphql`
+2. **Next.js API Route** receives the request
+3. **GraphQL Yoga** parses the query, validates it, and runs the resolver function
+4. **Resolver Function** executes business logic (read/write from in-memory store)
+5. **GraphQL Server** returns JSON result to the client
+6. **Frontend** updates the UI with the returned data
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
+
+```bash
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Key files and directories in this project:
 
-## Learn More
+```
+src/
+├── app/
+│   ├── api/
+│   │   └── graphql/
+│   │       └── route.ts     # GraphQL API endpoint using GraphQL Yoga
+│   ├── page.tsx             # Frontend client component with form and message list
+│   └── layout.tsx           # Root layout with fonts and metadata
+```
 
-To learn more about Next.js, take a look at the following resources:
+## GraphQL API Explanation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Schema Definition
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The GraphQL schema in `src/app/api/graphql/route.ts` defines:
 
-## Deploy on Vercel
+```graphql
+type Query {
+  getMessages: [String]
+}
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+type Mutation {
+  addMessage(message: String!): [String]
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Resolvers
+
+The resolvers implement the business logic:
+
+```typescript
+const resolvers = {
+  Query: {
+    // Returns all messages from our in-memory store
+    getMessages: () => messages,
+  },
+  Mutation: {
+    // Adds a new message to the store and returns the updated list
+    addMessage: (_: any, { message }: { message: string }) => {
+      messages.push(message);
+      return messages;
+    },
+  },
+};
+```
+
+## Frontend Implementation
+
+The frontend React component in `src/app/page.tsx`:
+
+1. Uses React state to manage messages and form inputs
+2. Fetches messages on page load using the `getMessages` query
+3. Provides a form to add new messages using the `addMessage` mutation
+4. Updates the UI when messages are added
+
+## Technologies Used
+
+- **Next.js**: React framework with App Router
+- **GraphQL Yoga**: Modern GraphQL server implementation
+- **TypeScript**: Type safety throughout the application
+- **React**: Frontend UI components and state management
+
+## Further Learning Resources
+
+- [GraphQL Official Documentation](https://graphql.org/learn/)
+- [GraphQL Yoga Documentation](https://the-guild.dev/graphql/yoga-server)
+- [Next.js Documentation](https://nextjs.org/docs)
+
+## Extending This Project
+
+Here are some ways you could extend this basic application:
+
+1. Add a database connection (MongoDB, PostgreSQL, etc.)
+2. Implement authentication for message authors
+3. Add more complex types (message with author, timestamp, etc.)
+4. Implement subscriptions for real-time updates
+5. Add GraphQL input validation
+6. Set up Apollo Client on the frontend for more advanced caching
