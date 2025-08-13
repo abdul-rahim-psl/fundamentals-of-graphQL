@@ -27,11 +27,13 @@ export default function Home() {
   const fetchMessages = async () => {
     setIsLoading(true);
 
+    const query = "query { getMessages }";
+
     try {
       const response = await fetch("/api/graphql", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "{ getMessages }" }),
+        body: JSON.stringify({ query }),
       });
 
       const data = await response.json();
